@@ -1,0 +1,20 @@
+[project]
+name = "ai-health-check-api"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Your Name",email = "you@example.com"}
+]
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi[standard] (>=0.141.1,<0.142.0)",
+    "pydantic (>=2.13.5,<3.0.0)",
+    "dotenv (>=0.9.9,<0.10.0)",
+    "httpx (>=0.28.1,<0.29.0)",
+    "pytest (>=9.1.1,<10.0.0)",
+    "google-genai (>=2.24.0,<3.0.0)"
+]
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
