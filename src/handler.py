@@ -5,7 +5,7 @@ from typing import Literal
 from pydantic import ValidationError
 
 from llm import LLMService
-from models import HumanHealthReponse, HumanHealthRequest
+from models import HumanHealthResponse, HumanHealthRequest
 
 system_prompt = f"""
     Provide the response in a JSON format with the following fields:
@@ -36,7 +36,7 @@ class Handler:
     def __init__(self) -> None:
         self.llm_service = LLMService()
 
-    async def check_human_health(self, request: HumanHealthRequest) -> HumanHealthReponse:
+    async def check_human_health(self, request: HumanHealthRequest) -> HumanHealthResponse:
         logging.info("Starting to prepare prompt and writing response from AI")
         prompt = f"""
             You're a Medical Expert. You need to check if the patient is healthy or not based on the provided vitals as below:
@@ -46,7 +46,7 @@ class Handler:
         response = await self.llm_service.write(prompt=prompt, system_prompt=system_prompt);
         if response is None:
             logging.error("No response received from AI")
-            return HumanHealthReponse(
+            return HumanHealthResponse(
                 is_healthy=False,
                 recommendations="Sorry, we're unable to reach AI model. Exiting.."
             )
@@ -54,7 +54,7 @@ class Handler:
         result = await self._handle_result(request, response)
         return result
 
-    async def _handle_result(self, request: HumanHealthRequest, response: str) -> HumanHealthReponse:
+    async def _handle_result(self, request: HumanHealthRequest, response: str) -> HumanHealthResponse:
         logging.info("Parsing response form AI")
         result = self._parse_result(response)
         if result == False:
@@ -62,16 +62,16 @@ class Handler:
             result = await self.check_human_health(request)
             if result == False:
                 logging.error("AI gave response which is not parsable into response JSON. Returning with error..")
-                return HumanHealthReponse(
+                return HumanHealthResponse(
                     is_healthy=False,
                     recommendations="Sorry, we're unable to provide your health analysis due to some internal issue. Please try again."
                 )
         return result
 
-    def _parse_result(self, response: str) -> HumanHealthReponse | Literal[False]:
+    def _parse_result(self, response: str) -> HumanHealthResponse | Literal[False]:
         try:
             logging.info("Parsing AI response into response model")
-            return HumanHealthReponse.model_validate_json(response)
+            return HumanHealthResponse.model_validate_json(response)
         except ValidationError as error:
             logging.error("Parsing AI response has resulted in Validation Error:", error)
             return False

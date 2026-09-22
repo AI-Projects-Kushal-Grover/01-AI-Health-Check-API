@@ -9,6 +9,6 @@ class HumanHealthRequest(BaseModel):
     symptoms: list[str] = Field(default_factory=list)
     temperatureF: float = Field(ge=0)
 
-class HumanHealthReponse(BaseModel):
+class HumanHealthResponse(BaseModel):
     is_healthy: bool = Field()
     recommendations: str = Field(min_length=1)
