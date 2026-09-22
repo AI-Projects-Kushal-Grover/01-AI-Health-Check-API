@@ -10,7 +10,7 @@ from models import HumanHealthReponse, HumanHealthRequest
 system_prompt = f"""
     Provide the response in a JSON format with the following fields:
     - "is_healthy": boolean indicating if the patient is healthy or not. Acceptable values are true or false.
-    - "recommendations": string providing any recommendations for the patient. Multiline text is acceptable. If the patient is healthy, this field can be empty.
+    - "recommendations": string providing any recommendations for the patient. Multiline text is acceptable. If the patient is healthy, please indicate that in the "recommendations" field.
 
     Strict instructions to follow:
     - Generate the raw JSON content which is directly parsable, and not markdown
