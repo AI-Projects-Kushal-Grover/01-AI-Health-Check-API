@@ -7,7 +7,7 @@ from pydantic import ValidationError
 from llm import LLMService
 from models import HumanHealthResponse, HumanHealthRequest
 
-system_prompt = f"""
+_system_prompt = f"""
     Provide the response in a JSON format with the following fields:
     - "is_healthy": boolean indicating if the patient is healthy or not. Acceptable values are true or false.
     - "recommendations": string providing any recommendations for the patient. Multiline text is acceptable. If the patient is healthy, please indicate that in the "recommendations" field.
@@ -32,18 +32,20 @@ system_prompt = f"""
     }}
 """
 
+_max_attempt = 2
+
 class Handler:
     def __init__(self) -> None:
         self.llm_service = LLMService()
 
-    async def check_human_health(self, request: HumanHealthRequest) -> HumanHealthResponse:
+    async def check_human_health(self, request: HumanHealthRequest, attempt = 0) -> HumanHealthResponse:
         logging.info("Starting to prepare prompt and writing response from AI")
         prompt = f"""
             You're a Medical Expert. You need to check if the patient is healthy or not based on the provided vitals as below:
             {json.dumps(request.model_dump(), ensure_ascii=False)}
         """
 
-        response = await self.llm_service.write(prompt=prompt, system_prompt=system_prompt);
+        response = await self.llm_service.write(prompt=prompt, system_prompt=_system_prompt);
         if response is None:
             logging.error("No response received from AI")
             return HumanHealthResponse(
@@ -51,16 +53,17 @@ class Handler:
                 recommendations="Sorry, we're unable to reach AI model. Exiting.."
             )
         
-        result = await self._handle_result(request, response)
+        result = await self._handle_result(request, response, attempt)
         return result
 
-    async def _handle_result(self, request: HumanHealthRequest, response: str) -> HumanHealthResponse:
+    async def _handle_result(self, request: HumanHealthRequest, response: str, attempt: int) -> HumanHealthResponse:
         logging.info("Parsing response form AI")
         result = self._parse_result(response)
         if result == False:
-            logging.error("AI gave response which is not parsable into response JSON. Prompting AI again..")
-            result = await self.check_human_health(request)
-            if result == False:
+            logging.error(f"AI gave response which is not parsable into response JSON with attempt = {attempt}. Prompting AI again..")
+            attempt += 1
+            result = await self.check_human_health(request, attempt)
+            if result == False and attempt >= _max_attempt:
                 logging.error("AI gave response which is not parsable into response JSON. Returning with error..")
                 return HumanHealthResponse(
                     is_healthy=False,
