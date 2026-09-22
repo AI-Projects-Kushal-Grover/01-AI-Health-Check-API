@@ -1,4 +1,5 @@
 import os
+import logging
 
 from google import genai
 from google.genai import types
@@ -9,6 +10,7 @@ class LLMService:
         self.client = genai.Client(api_key=os.getenv("GEMINI_API_KEY")).aio
 
     async def write(self, *, prompt: str, system_prompt: str) -> str | None:
+        logging.info(f"Using model: {self.model} for prompting.")
         response = await self.client.models.generate_content(
             model=self.model,
             contents=prompt,

@@ -8,4 +8,7 @@ class HumanHealthRequest(BaseModel):
     gender: Literal["male", "female"] 
     symptoms: list[str] = Field(default_factory=list)
     temperatureF: float = Field(ge=0)
-    
+
+class HumanHealthReponse(BaseModel):
+    is_healthy: bool = Field()
+    recommendations: str = Field(min_length=1)
